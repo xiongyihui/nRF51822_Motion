@@ -2,8 +2,12 @@
 #include "mbed_spi.h"
 #include "inv_mpu.h"
 #include "inv_mpu_dmp_motion_driver.h"
- 
-#define LOG(...)    { printf(__VA_ARGS__); }
+
+#ifdef DEBUG
+#define LOG(...)     { printf(__VA_ARGS__); }
+#else
+#define LOG(...)
+#endif
  
 #define MPU9250_MISO  p16
 #define MPU9250_MOSI  p12
@@ -15,18 +19,9 @@
 #define DEFAULT_MPU_HZ  (100)
  
 Ticker ticker;
-InterruptIn motion_probe(MPU9250_INT);
  
 volatile uint8_t compass_event = 0;
 volatile uint8_t motion_event = 0;
-static signed char board_orientation[9] = {
-    1, 0, 0,
-    0, 1, 0,
-    0, 0, 1
-};
- 
-unsigned short inv_orientation_matrix_to_scalar( const signed char *mtx);
- 
  
 void compass_tick_handle(void)
 {
@@ -61,7 +56,12 @@ void disable_uart(void)
  
 int main(void)
 {
+#ifndef DEBUG
+    disable_uart();
+#else
+    wait(1);
     LOG("---- eMPL MPU library @ Seeed ----\n");
+#endif
  
     mbed_spi_init(MPU9250_MOSI, MPU9250_MISO, MPU9250_SCLK, MPU9250_CS);
  
@@ -72,21 +72,12 @@ int main(void)
  
     /* Get/set hardware configuration. Start gyro. */
     /* Wake up all sensors. */
-    mpu_set_sensors(INV_XYZ_GYRO | INV_XYZ_ACCEL | INV_XYZ_COMPASS); //
+    mpu_set_sensors(INV_XYZ_ACCEL); // | INV_XYZ_GYRO | INV_XYZ_COMPASS);
     /* Push both gyro and accel data into the FIFO. */
-    mpu_configure_fifo(INV_XYZ_GYRO | INV_XYZ_ACCEL);
+    // mpu_configure_fifo(INV_XYZ_ACCEL | INV_XYZ_GYRO);
     mpu_set_sample_rate(DEFAULT_MPU_HZ);
  
-    /* Read back configuration in case it was set improperly. */
-    unsigned char accel_fsr;
-    unsigned short gyro_rate, gyro_fsr;
-    mpu_get_sample_rate(&gyro_rate);
-    mpu_get_gyro_fsr(&gyro_fsr);
-    mpu_get_accel_fsr(&accel_fsr);
- 
     dmp_load_motion_driver_firmware();
-    dmp_set_orientation(
-        inv_orientation_matrix_to_scalar(board_orientation));
     dmp_register_tap_cb(tap_cb);
     dmp_register_android_orient_cb(android_orient_cb);
  
@@ -96,19 +87,26 @@ int main(void)
  
     dmp_enable_feature(dmp_features);
     dmp_set_fifo_rate(DEFAULT_MPU_HZ);
-    mpu_set_dmp_state(1);
+    mpu_set_dmp_state(0);
+    
+    // dmp_set_interrupt_mode(DMP_INT_CONTINUOUS);
+    // dmp_set_tap_thresh(TAP_XYZ, 50);
+    
+    mpu_lp_accel_mode(1);
+    mpu_lp_motion_interrupt(128, 1, 1);
+    
+    mpu_reg_dump();
  
-    dmp_set_interrupt_mode(DMP_INT_CONTINUOUS);
-    dmp_set_tap_thresh(TAP_XYZ, 50);
- 
+    InterruptIn motion_probe(MPU9250_INT);
     motion_probe.fall(motion_interrupt_handle);
  
-    ticker.attach(compass_tick_handle, 0.1);
+    // ticker.attach(compass_tick_handle, 0.1);
     
     mbed_spi_disable();
  
     int try_to_sleep = 1;
     while (true) {
+#if 0
         if (motion_event) {
             try_to_sleep = 0;
  
@@ -156,8 +154,25 @@ int main(void)
             }
  
             mbed_spi_disable();
+            
             motion_event = 0;
         }
+#else
+        if (motion_event) {
+            try_to_sleep = 0;
+            motion_event = 0;
+ 
+            unsigned long sensor_timestamp;
+            short accel[3];
+            
+            mbed_spi_enable();
+            mpu_get_accel_reg(accel, &sensor_timestamp);
+            mbed_spi_disable();
+            
+            LOG("acc: %d, %d, %d @ %ld\n", accel[0], accel[1], accel[2], sensor_timestamp);
+
+        }
+#endif
         
         if (compass_event) {
             try_to_sleep = 0;
@@ -183,51 +198,4 @@ int main(void)
         
         try_to_sleep = 1;
     }
-}
- 
-/* These next two functions converts the orientation matrix (see
- * gyro_orientation) to a scalar representation for use by the DMP.
- * NOTE: These functions are borrowed from Invensense's MPL.
- */
-static inline unsigned short inv_row_2_scale(const signed char *row)
-{
-    unsigned short b;
- 
-    if (row[0] > 0)
-        b = 0;
-    else if (row[0] < 0)
-        b = 4;
-    else if (row[1] > 0)
-        b = 1;
-    else if (row[1] < 0)
-        b = 5;
-    else if (row[2] > 0)
-        b = 2;
-    else if (row[2] < 0)
-        b = 6;
-    else
-        b = 7;      // error
-    return b;
-}
- 
-unsigned short inv_orientation_matrix_to_scalar(
-    const signed char *mtx)
-{
-    unsigned short scalar;
- 
-    /*
-       XYZ  010_001_000 Identity Matrix
-       XZY  001_010_000
-       YXZ  010_000_001
-       YZX  000_010_001
-       ZXY  001_000_010
-       ZYX  000_001_010
-     */
- 
-    scalar = inv_row_2_scale(mtx);
-    scalar |= inv_row_2_scale(mtx + 3) << 3;
-    scalar |= inv_row_2_scale(mtx + 6) << 6;
- 
- 
-    return scalar;
 }

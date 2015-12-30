@@ -26,8 +26,8 @@
 
 #define __no_operation              __nop
 #define delay_ms                    wait_ms
-#define log_i(args...)              //printf(args)
-#define log_e(args...)              //printf(args)
+#define log_i(args...)              printf(args)
+#define log_e(args...)              printf(args)
 #define labs                        abs
 #define fabs(x)                     (((x)>0)?(x):-(x))
 #define min(x, y)                   (((x) < (y)) ? (x) : (y))

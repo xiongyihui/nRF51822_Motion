@@ -75,7 +75,7 @@ int mbed_spi_read(unsigned char reg_addr,
 
 void mbed_spi_enable(void)
 {
-#ifdef TARGET_MCU_NRF51822
+#if defined(TARGET_MCU_NRF51822) && !defined(DEBUG)
     NRF_GPIO->PIN_CNF[mbed_spi_mosi] = mbed_spi_mosi_cnf;
     NRF_GPIO->PIN_CNF[mbed_spi_miso] = mbed_spi_miso_cnf;
     NRF_GPIO->PIN_CNF[mbed_spi_sclk] = mbed_spi_sclk_cnf;
@@ -87,7 +87,7 @@ void mbed_spi_enable(void)
 
 void mbed_spi_disable(void)
 {
-#ifdef TARGET_MCU_NRF51822
+#if defined(TARGET_MCU_NRF51822) && !defined(DEBUG)
     mbed_spi_mosi_cnf = NRF_GPIO->PIN_CNF[mbed_spi_mosi];
     mbed_spi_miso_cnf = NRF_GPIO->PIN_CNF[mbed_spi_miso];
     mbed_spi_sclk_cnf = NRF_GPIO->PIN_CNF[mbed_spi_sclk];

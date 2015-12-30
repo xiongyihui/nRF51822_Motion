@@ -4,6 +4,8 @@
 GCC_BIN = 
 PROJECT = Seeed_nRF51822_MPU9250
 OBJECTS = ./mbed-src/targets/cmsis/TARGET_NORDIC/TARGET_MCU_NRF51822/TOOLCHAIN_GCC_ARM/startup_NRF51822.o ./mbed-src/targets/hal/TARGET_NORDIC/TARGET_MCU_NRF51822/port_api.o ./mbed-src/targets/hal/TARGET_NORDIC/TARGET_MCU_NRF51822/spi_api.o ./mbed-src/targets/hal/TARGET_NORDIC/TARGET_MCU_NRF51822/analogin_api.o ./mbed-src/targets/hal/TARGET_NORDIC/TARGET_MCU_NRF51822/gpio_api.o ./mbed-src/targets/hal/TARGET_NORDIC/TARGET_MCU_NRF51822/gpio_irq_api.o ./mbed-src/targets/hal/TARGET_NORDIC/TARGET_MCU_NRF51822/serial_api.o ./mbed-src/targets/hal/TARGET_NORDIC/TARGET_MCU_NRF51822/i2c_api.o ./mbed-src/targets/hal/TARGET_NORDIC/TARGET_MCU_NRF51822/pwmout_api.o ./mbed-src/targets/hal/TARGET_NORDIC/TARGET_MCU_NRF51822/sleep.o ./mbed-src/targets/hal/TARGET_NORDIC/TARGET_MCU_NRF51822/twi_master.o ./mbed-src/targets/hal/TARGET_NORDIC/TARGET_MCU_NRF51822/pinmap.o ./mbed-src/targets/hal/TARGET_NORDIC/TARGET_MCU_NRF51822/us_ticker.o ./mbed-src/targets/cmsis/TARGET_NORDIC/TARGET_MCU_NRF51822/cmsis_nvic.o ./mbed-src/targets/cmsis/TARGET_NORDIC/TARGET_MCU_NRF51822/system_nrf51.o ./mbed-src/common/board.o ./mbed-src/common/assert.o ./mbed-src/common/mbed_interface.o ./mbed-src/common/ticker_api.o ./mbed-src/common/rtc_time.o ./mbed-src/common/lp_ticker_api.o ./mbed-src/common/us_ticker_api.o ./mbed-src/common/pinmap_common.o ./mbed-src/common/error.o ./mbed-src/common/gpio.o ./mbed-src/common/semihost_api.o ./mbed-src/common/wait_api.o ./eMPL_MPU/inv_mpu.o ./eMPL_MPU/mbed_i2c.o ./eMPL_MPU/inv_mpu_dmp_motion_driver.o ./eMPL_MPU/mbed_spi.o ./main.o ./mbed-src/common/RawSerial.o ./mbed-src/common/Ticker.o ./mbed-src/common/FilePath.o ./mbed-src/common/I2C.o ./mbed-src/common/FileBase.o ./mbed-src/common/retarget.o ./mbed-src/common/Serial.o ./mbed-src/common/Stream.o ./mbed-src/common/FileSystemLike.o ./mbed-src/common/CallChain.o ./mbed-src/common/InterruptManager.o ./mbed-src/common/SerialBase.o ./mbed-src/common/BusInOut.o ./mbed-src/common/SPISlave.o ./mbed-src/common/I2CSlave.o ./mbed-src/common/Timer.o ./mbed-src/common/SPI.o ./mbed-src/common/Timeout.o ./mbed-src/common/Ethernet.o ./mbed-src/common/TimerEvent.o ./mbed-src/common/CAN.o ./mbed-src/common/BusOut.o ./mbed-src/common/FileLike.o ./mbed-src/common/BusIn.o ./mbed-src/common/InterruptIn.o ./mbed-src/common/LocalFileSystem.o 
+OBJECTS += W25Q16BV.o
+
 SYS_OBJECTS = 
 INCLUDE_PATHS = -I. -I./mbed-src -I./mbed-src/hal -I./mbed-src/api -I./mbed-src/targets -I./mbed-src/targets/hal -I./mbed-src/targets/hal/TARGET_NORDIC -I./mbed-src/targets/hal/TARGET_NORDIC/TARGET_MCU_NRF51822 -I./mbed-src/targets/hal/TARGET_NORDIC/TARGET_MCU_NRF51822/TARGET_SEEED_TINY_BLE -I./mbed-src/targets/hal/TARGET_NORDIC/TARGET_MCU_NRF51822/Lib -I./mbed-src/targets/hal/TARGET_NORDIC/TARGET_MCU_NRF51822/Lib/nordic_sdk -I./mbed-src/targets/hal/TARGET_NORDIC/TARGET_MCU_NRF51822/Lib/nordic_sdk/components -I./mbed-src/targets/hal/TARGET_NORDIC/TARGET_MCU_NRF51822/Lib/nordic_sdk/components/libraries -I./mbed-src/targets/hal/TARGET_NORDIC/TARGET_MCU_NRF51822/Lib/nordic_sdk/components/libraries/crc16 -I./mbed-src/targets/hal/TARGET_NORDIC/TARGET_MCU_NRF51822/Lib/nordic_sdk/components/libraries/scheduler -I./mbed-src/targets/hal/TARGET_NORDIC/TARGET_MCU_NRF51822/Lib/nordic_sdk/components/libraries/util -I./mbed-src/targets/hal/TARGET_NORDIC/TARGET_MCU_NRF51822/Lib/s130_nrf51822_1_0_0 -I./mbed-src/targets/hal/TARGET_NORDIC/TARGET_MCU_NRF51822/Lib/s110_nrf51822_8_0_0 -I./mbed-src/targets/cmsis -I./mbed-src/targets/cmsis/TARGET_NORDIC -I./mbed-src/targets/cmsis/TARGET_NORDIC/TARGET_MCU_NRF51822 -I./mbed-src/targets/cmsis/TARGET_NORDIC/TARGET_MCU_NRF51822/TOOLCHAIN_GCC_ARM -I./mbed-src/targets/cmsis/TARGET_NORDIC/TARGET_MCU_NRF51822/TOOLCHAIN_GCC_ARM/TARGET_MCU_NRF51_16K_S130 -I./mbed-src/common -I./eMPL_MPU 
 LIBRARY_PATHS = 
@@ -39,10 +41,12 @@ else
   CC_FLAGS += -DNDEBUG -Os
 endif
 
-.PHONY: all clean lst size
+.PHONY: all clean lst size rm_main
 
-all: $(PROJECT).bin $(PROJECT).hex size
+all: rm_main $(PROJECT).bin $(PROJECT).hex size
 
+rm_main:
+	rm -f main.o
 
 clean:
 	rm -f $(PROJECT).bin $(PROJECT).elf $(PROJECT).hex $(PROJECT).map $(PROJECT).lst $(OBJECTS) $(DEPS)

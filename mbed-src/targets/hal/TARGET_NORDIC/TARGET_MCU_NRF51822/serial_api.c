@@ -79,9 +79,9 @@ void serial_init(serial_t *obj, PinName tx, PinName rx) {
 
     obj->index = 0;
     
-    obj->uart->PSELRTS = RTS_PIN_NUMBER;
+    // obj->uart->PSELRTS = RTS_PIN_NUMBER;
     obj->uart->PSELTXD = tx; //TX_PIN_NUMBER;
-    obj->uart->PSELCTS = CTS_PIN_NUMBER;
+    // obj->uart->PSELCTS = CTS_PIN_NUMBER;
     obj->uart->PSELRXD = rx; //RX_PIN_NUMBER;
 
     // set rx/tx pins in PullUp mode

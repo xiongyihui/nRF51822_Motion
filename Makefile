@@ -92,3 +92,5 @@ DEPS = $(OBJECTS:.o=.d) $(SYS_OBJECTS:.o=.d)
 merge:
 	$(SREC_CAT) $(SOFTDEVICE) -intel $(PROJECT).hex -intel -o combined.hex -intel --line-length=44
 
+flash: rm_main $(PROJECT).hex
+	pyocd-flashtool -t nrf51 $(PROJECT).hex
